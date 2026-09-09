@@ -26,6 +26,18 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
+/** Spendly AI brand palette (from product mockups): deep emerald + fresh mint. */
+export const Spendly = {
+  primary: '#0E6B4E',
+  primaryDark: '#0A4A37',
+  accent: '#22B07D',
+  background: '#F4F7F5',
+  card: '#FFFFFF',
+  ink: '#10241C',
+  muted: '#5F7269',
+  danger: '#C0392B',
+} as const;
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */

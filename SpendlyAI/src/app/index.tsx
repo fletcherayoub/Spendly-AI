@@ -1,98 +1,75 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import { BottomTabInset, MaxContentWidth, Spacing, Spendly } from '@/constants/theme';
+import { useProfile } from '@/hooks/use-profile';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function HomeScreen() {
+  const user = useAuthStore((s) => s.user);
+  const { data: profile } = useProfile(user?.id);
+  const name = profile?.display_name ?? user?.email ?? 'there';
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
+    <View style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Good morning,</Text>
+          <Text style={styles.name}>{name}</Text>
+        </View>
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>This month</Text>
+          <Text style={styles.cardValue}>€0.00</Text>
+          <Text style={styles.cardHint}>Connect expenses to see your spending here.</Text>
+        </View>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: Spendly.background,
     flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
     justifyContent: 'center',
+  },
+  safe: {
     flex: 1,
+    maxWidth: MaxContentWidth,
     paddingHorizontal: Spacing.four,
+    paddingBottom: BottomTabInset + Spacing.three,
     gap: Spacing.four,
   },
-  title: {
-    textAlign: 'center',
+  header: {
+    paddingTop: Spacing.four,
   },
-  code: {
-    textTransform: 'uppercase',
+  greeting: {
+    color: Spendly.muted,
+    fontSize: 14,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  name: {
+    color: Spendly.ink,
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  card: {
+    backgroundColor: Spendly.primary,
+    borderRadius: 20,
+    padding: Spacing.four,
+    gap: Spacing.one,
+  },
+  cardLabel: {
+    color: '#CDE6DA',
+    fontSize: 13,
+  },
+  cardValue: {
+    color: '#FFFFFF',
+    fontSize: 34,
+    fontWeight: '800',
+  },
+  cardHint: {
+    color: '#CDE6DA',
+    fontSize: 13,
   },
 });

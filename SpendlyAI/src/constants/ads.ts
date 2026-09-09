@@ -1,5 +1,4 @@
 import { TestIds } from 'react-native-google-mobile-ads';
-import { useAdStore } from '@/store/adStore';
 
 const AD_UNIT_IDS = {
   banner: __DEV__ ? TestIds.BANNER : (process.env.EXPO_PUBLIC_BANNER_AD_UNIT_ID || TestIds.BANNER),
