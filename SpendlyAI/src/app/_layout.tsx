@@ -1,32 +1,18 @@
-import { Stack } from 'expo-router';
-import { colors } from '@/theme/colors';
-import { useAuth } from '@/hooks/useAuth';
-import { LoadingState } from '@/components/common/LoadingState';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useColorScheme } from 'react-native';
 
-export default function RootLayout() {
-  const { loading } = useAuth();
+import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import AppTabs from '@/components/app-tabs';
 
-  if (loading) {
-    return <LoadingState message="Initializing Spendly AI..." />;
-  }
+SplashScreen.preventAutoHideAsync();
 
+export default function TabLayout() {
+  const colorScheme = useColorScheme();
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.dark.bg },
-      }}
-    >
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="scan/index" />
-      <Stack.Screen name="scan/preview" />
-      <Stack.Screen name="scan/review" />
-      <Stack.Screen name="expense/create" />
-      <Stack.Screen name="expense/[id]" />
-      <Stack.Screen name="goals/index" />
-      <Stack.Screen name="ai/insights" />
-      <Stack.Screen name="settings/index" />
-    </Stack>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <AnimatedSplashOverlay />
+      <AppTabs />
+    </ThemeProvider>
   );
 }

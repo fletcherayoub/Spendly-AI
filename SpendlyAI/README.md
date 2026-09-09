@@ -1,86 +1,56 @@
-# Spendly AI - Mobile Finance & AI Receipt Scanner
+# Welcome to your Expo app 👋
 
-"Snap. Track. Understand your spending."
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-Spendly AI is a modern personal finance Android/iOS mobile app built with Expo, React Native, TypeScript, and Supabase.
+## Get started
 
----
+1. Install dependencies
 
-## 🚀 Key Features
-
-1. **AI Receipt Scanning**: Capture receipts using Expo Camera and extract merchant, tax, total, and line items with server-side AI.
-2. **Expense Management**: Track and categorize expenses manually or automatically from receipts.
-3. **Monthly Budgeting**: Set spending targets and monitor live progress with automated budget warning alerts.
-4. **Savings Goals**: Plan and visualize progress towards financial goals.
-5. **AI Financial Intelligence**: Tailored spending analysis and cost-saving suggestions based on real user transaction history.
-6. **Supabase Backend**: Relational Postgres database with Row Level Security (RLS) protection on all tables, plus encrypted Supabase Storage for private receipt images.
-
----
-
-## 🛠 Project Architecture
-
-```
-src/
-├── app/                  # Expo Router file-based navigation
-│   ├── (auth)/          # Authentication flow (welcome, sign-in, sign-up)
-│   ├── (tabs)/          # Main App Bottom Tabs (Home, Expenses, Statistics, Budget, Profile)
-│   ├── scan/            # Camera receipt scanner & AI review pipeline
-│   ├── expense/         # Manual expense creation & detail views
-│   ├── goals/           # Savings goals manager
-│   ├── ai/              # AI spending insights dashboard
-│   └── settings/        # App preferences & settings
-├── components/          # Reusable UI components (LoadingState, EmptyState, ErrorState)
-├── hooks/               # Custom hooks (useAuth)
-├── lib/                 # Supabase client setup
-├── services/            # Data services & AI provider abstraction
-├── store/               # Zustand store for app & ad state
-├── theme/               # Centralized theme tokens (emerald palette, typography, spacing)
-└── types/               # TypeScript database schema definitions
-
-supabase/
-├── functions/           # Supabase Edge Functions (process-receipt)
-```
-
----
-
-## 🔑 Environment Setup
-
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Configure your Supabase project credentials in `.env`:
-   ```env
-   EXPO_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-   ```
-
----
-
-## 🏃 Running the Application
-
-1. Install dependencies:
    ```bash
    npm install
    ```
-2. Start the Expo dev server:
+
+2. Start the app
+
    ```bash
    npx expo start
    ```
-3. Run on Android:
-   ```bash
-   npx expo start --android
-   ```
 
----
+In the output, you'll find options to open the app in a
 
-## 🧪 Testing & Verification
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-- Check TypeScript types:
-  ```bash
-  npx tsc --noEmit
-  ```
-- Run Expo Doctor:
-  ```bash
-  npx expo-doctor
-  ```
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
+
+```bash
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+### Other setup steps
+
+- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
+- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
+- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
