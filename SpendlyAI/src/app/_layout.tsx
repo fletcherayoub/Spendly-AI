@@ -3,18 +3,18 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
 import { SignInScreen } from '@/components/sign-in-screen';
+import { useAppColorScheme } from '@/hooks/use-app-color-scheme';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/store/auth-store';
 
 SplashScreen.preventAutoHideAsync();
 
 function AuthGate() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const status = useAuthStore((s) => s.status);
   const init = useAuthStore((s) => s.init);
 

@@ -1,11 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomTabInset, MaxContentWidth, Spacing, Spendly } from '@/constants/theme';
-import { useProfile } from '@/hooks/use-profile';
+import { BottomTabInset, MaxContentWidth, Spacing, type SpendlyTheme } from '@/constants/theme';
+import { useSpendlyTheme } from '@/hooks/use-spendly-theme';
+import { useProfile } from '@/hooks/UserHooks/use-profile';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function HomeScreen() {
+  const t = useSpendlyTheme();
+  const styles = createStyles(t);
   const user = useAuthStore((s) => s.user);
   const { data: profile } = useProfile(user?.id);
   const name = profile?.display_name ?? user?.email ?? 'there';
@@ -27,49 +30,50 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Spendly.background,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  safe: {
-    flex: 1,
-    maxWidth: MaxContentWidth,
-    paddingHorizontal: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.three,
-    gap: Spacing.four,
-  },
-  header: {
-    paddingTop: Spacing.four,
-  },
-  greeting: {
-    color: Spendly.muted,
-    fontSize: 14,
-  },
-  name: {
-    color: Spendly.ink,
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  card: {
-    backgroundColor: Spendly.primary,
-    borderRadius: 20,
-    padding: Spacing.four,
-    gap: Spacing.one,
-  },
-  cardLabel: {
-    color: '#CDE6DA',
-    fontSize: 13,
-  },
-  cardValue: {
-    color: '#FFFFFF',
-    fontSize: 34,
-    fontWeight: '800',
-  },
-  cardHint: {
-    color: '#CDE6DA',
-    fontSize: 13,
-  },
-});
+const createStyles = (t: SpendlyTheme) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: t.background,
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    safe: {
+      flex: 1,
+      maxWidth: MaxContentWidth,
+      paddingHorizontal: Spacing.four,
+      paddingBottom: BottomTabInset + Spacing.three,
+      gap: Spacing.four,
+    },
+    header: {
+      paddingTop: Spacing.four,
+    },
+    greeting: {
+      color: t.muted,
+      fontSize: 14,
+    },
+    name: {
+      color: t.ink,
+      fontSize: 24,
+      fontWeight: '800',
+    },
+    card: {
+      backgroundColor: t.primary,
+      borderRadius: 20,
+      padding: Spacing.four,
+      gap: Spacing.one,
+    },
+    cardLabel: {
+      color: t.onPrimaryMuted,
+      fontSize: 13,
+    },
+    cardValue: {
+      color: t.onPrimary,
+      fontSize: 34,
+      fontWeight: '800',
+    },
+    cardHint: {
+      color: t.onPrimaryMuted,
+      fontSize: 13,
+    },
+  });

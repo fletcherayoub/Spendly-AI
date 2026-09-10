@@ -26,17 +26,54 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-/** Spendly AI brand palette (from product mockups): deep emerald + fresh mint. */
-export const Spendly = {
+/**
+ * SPENDLY THEME — single source of truth for every color in the app.
+ *
+ * Workflow: never hardcode a hex outside this file. Add/change a token here
+ * (in BOTH light and dark palettes) and every screen picks it up via
+ * `useSpendlyTheme()`. Re-theming the whole app = editing the two palettes below.
+ */
+const spendlyBrand = {
   primary: '#0E6B4E',
   primaryDark: '#0A4A37',
   accent: '#22B07D',
+} as const;
+
+export const SpendlyLight = {
+  ...spendlyBrand,
+  primarySoft: '#DDF0E7',
   background: '#F4F7F5',
   card: '#FFFFFF',
   ink: '#10241C',
   muted: '#5F7269',
+  onPrimary: '#FFFFFF',
+  onPrimaryMuted: '#CDE6DA',
+  border: '#D8E2DD',
   danger: '#C0392B',
+  dangerBorder: '#E4CFC9',
+  link: '#3C87F7',
 } as const;
+
+export const SpendlyDark = {
+  ...spendlyBrand,
+  primarySoft: '#143A2E',
+  background: '#0C1210',
+  card: '#141E1A',
+  ink: '#EDF4F0',
+  muted: '#93A89D',
+  onPrimary: '#FFFFFF',
+  onPrimaryMuted: '#CDE6DA',
+  border: '#26352E',
+  danger: '#E57373',
+  dangerBorder: '#5A2B25',
+  link: '#7AA9FF',
+} as const;
+
+export type SpendlyColor = keyof typeof SpendlyLight;
+export type SpendlyTheme = Record<SpendlyColor, string>;
+
+/** Back-compat alias (light palette). New code: use `useSpendlyTheme()` instead. */
+export const Spendly = SpendlyLight;
 
 export const Fonts = Platform.select({
   ios: {

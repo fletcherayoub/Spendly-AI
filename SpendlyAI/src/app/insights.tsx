@@ -1,9 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { MaxContentWidth, Spacing, Spendly } from '@/constants/theme';
+import { MaxContentWidth, Spacing, type SpendlyTheme } from '@/constants/theme';
+import { useSpendlyTheme } from '@/hooks/use-spendly-theme';
 
 export default function InsightsScreen() {
+  const t = useSpendlyTheme();
+  const styles = createStyles(t);
+
   return (
     <View style={styles.root}>
       <SafeAreaView style={styles.safe}>
@@ -16,32 +20,33 @@ export default function InsightsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Spendly.background,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  safe: {
-    flex: 1,
-    maxWidth: MaxContentWidth,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    gap: Spacing.three,
-  },
-  title: {
-    color: Spendly.ink,
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  card: {
-    backgroundColor: Spendly.primary,
-    borderRadius: 16,
-    padding: Spacing.four,
-  },
-  hint: {
-    color: '#CDE6DA',
-    fontSize: 14,
-  },
-});
+const createStyles = (t: SpendlyTheme) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: t.background,
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    safe: {
+      flex: 1,
+      maxWidth: MaxContentWidth,
+      paddingHorizontal: Spacing.four,
+      paddingTop: Spacing.four,
+      gap: Spacing.three,
+    },
+    title: {
+      color: t.ink,
+      fontSize: 24,
+      fontWeight: '800',
+    },
+    card: {
+      backgroundColor: t.primary,
+      borderRadius: 16,
+      padding: Spacing.four,
+    },
+    hint: {
+      color: t.onPrimaryMuted,
+      fontSize: 14,
+    },
+  });
