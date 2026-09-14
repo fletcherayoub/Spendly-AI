@@ -9,6 +9,12 @@ const settingsMmkv = createMMKV({ id: 'spendly-settings' });
 interface SettingsState {
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
+  policyAcceptedV1: boolean;
+  hasOnboarded: boolean;
+  acceptPolicy: () => void;
+  revokePolicy: () => void;
+  completeOnboarding: () => void;
+  resetOnboarding: () => void;
 }
 
 /** App settings persisted in MMKV (synchronous, survives restarts). */
@@ -17,6 +23,12 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       themeMode: 'system',
       setThemeMode: (themeMode) => set({ themeMode }),
+      policyAcceptedV1: false,
+      hasOnboarded: false,
+      acceptPolicy: () => set({ policyAcceptedV1: true }),
+      revokePolicy: () => set({ policyAcceptedV1: false, hasOnboarded: false }),
+      completeOnboarding: () => set({ hasOnboarded: true }),
+      resetOnboarding: () => set({ hasOnboarded: false }),
     }),
     {
       name: 'spendly-settings',

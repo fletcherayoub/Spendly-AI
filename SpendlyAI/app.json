@@ -8,7 +8,11 @@
     "scheme": "spendlyai",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Spendly AI needs camera access to scan receipts and extract expenses.",
+        "NSPhotoLibraryUsageDescription": "Spendly AI needs photo library access to pick receipt photos for AI scanning."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +22,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.SpendlyAI.com"
+      "package": "com.SpendlyAI.com",
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
     },
     "web": {
       "output": "static",
@@ -26,6 +31,18 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Spendly AI needs camera access to scan receipts and extract expenses."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Spendly AI needs photo library access to pick receipt photos for AI scanning."
+        }
+      ],
       [
         "expo-splash-screen",
         {

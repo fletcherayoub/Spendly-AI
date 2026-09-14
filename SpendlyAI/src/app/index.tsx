@@ -5,6 +5,8 @@ import { BottomTabInset, MaxContentWidth, Spacing, type SpendlyTheme } from '@/c
 import { useSpendlyTheme } from '@/hooks/use-spendly-theme';
 import { useProfile } from '@/hooks/UserHooks/use-profile';
 import { useAuthStore } from '@/store/auth-store';
+import { useExpenses } from '@/hooks/use-expenses';
+import { formatMoney } from '@/lib/currency';
 
 export default function HomeScreen() {
   const t = useSpendlyTheme();
@@ -12,6 +14,10 @@ export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const { data: profile } = useProfile(user?.id);
   const name = profile?.display_name ?? user?.email ?? 'there';
+  const { data: expenses } = useExpenses(user?.id);
+  const month = new Date().toISOString().slice(0, 7);
+  const monthTotal = (expenses ?? []).filter((e) => e.date.startsWith(month)).reduce((s, e) => s + Number(e.amount), 0);
+  const recent = (expenses ?? []).slice(0, 5);
 
   return (
     <View style={styles.root}>
@@ -22,9 +28,15 @@ export default function HomeScreen() {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardLabel}>This month</Text>
-          <Text style={styles.cardValue}>€0.00</Text>
-          <Text style={styles.cardHint}>Connect expenses to see your spending here.</Text>
+          <Text style={styles.cardValue}>{formatMoney(monthTotal)}</Text>
+          <Text style={styles.cardHint}>{(expenses ?? []).length} transactions tracked</Text>
         </View>
+        {recent.map((e) => (
+          <View key={e.id} style={styles.row}>
+            <Text style={styles.rowM}>{e.merchant ?? e.category}</Text>
+            <Text style={styles.rowA}>{formatMoney(Number(e.amount), e.currency)}</Text>
+          </View>
+        ))}
       </SafeAreaView>
     </View>
   );
@@ -76,4 +88,13 @@ const createStyles = (t: SpendlyTheme) =>
       color: t.onPrimaryMuted,
       fontSize: 13,
     },
+    row: {
+      backgroundColor: t.card,
+      borderRadius: 14,
+      padding: Spacing.three,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    rowM: { color: t.ink, fontWeight: '700' },
+    rowA: { color: t.ink, fontWeight: '800' },
   });

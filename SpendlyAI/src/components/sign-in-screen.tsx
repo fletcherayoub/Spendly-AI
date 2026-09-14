@@ -1,5 +1,6 @@
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import { Spacing, type SpendlyTheme } from '@/constants/theme';
 import { useSpendlyTheme } from '@/hooks/use-spendly-theme';
@@ -51,6 +52,19 @@ export function SignInScreen() {
             )}
           </Pressable>
         </View>
+
+        <Text style={styles.disclaimer}>
+          By continuing you accept our{' '}
+          <Text style={styles.link} onPress={() => router.push('/terms' as never)}>
+            Terms
+          </Text>
+          {' '}and{' '}
+          <Text style={styles.link} onPress={() => router.push('/privacy' as never)}>
+            Privacy Policy
+          </Text>
+          . Receipts stay private to your account — AI sees only what&apos;s needed to
+          read a receipt, and nothing is saved until you review and confirm it.
+        </Text>
       </SafeAreaView>
     </View>
   );
@@ -132,5 +146,17 @@ const createStyles = (t: SpendlyTheme) =>
     },
     pressed: {
       opacity: 0.7,
+    },
+    disclaimer: {
+      color: t.onPrimaryMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      textAlign: 'center',
+      paddingHorizontal: Spacing.two,
+    },
+    link: {
+      color: t.onPrimary,
+      fontWeight: '700',
+      textDecorationLine: 'underline',
     },
   });

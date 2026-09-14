@@ -6,10 +6,12 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
+import OnboardingScreen from '@/app/onboarding';
 import { SignInScreen } from '@/components/sign-in-screen';
 import { useAppColorScheme } from '@/hooks/use-app-color-scheme';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/store/auth-store';
+import { useSettingsStore } from '@/store/settings-store';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,6 +19,7 @@ function AuthGate() {
   const colorScheme = useAppColorScheme();
   const status = useAuthStore((s) => s.status);
   const init = useAuthStore((s) => s.init);
+  const hasOnboarded = useSettingsStore((s) => s.hasOnboarded);
 
   useEffect(() => {
     const unsubscribe = init();
@@ -38,7 +41,10 @@ function AuthGate() {
     );
   }
 
-  // Not connected → branded Google sign-in. Connected → home tab.
+  // Onboarding first, then auth. Policy consent via login disclaimer.
+  if (!hasOnboarded) {
+    return <OnboardingScreen />;
+  }
   if (status === 'signedOut') {
     return <SignInScreen />;
   }

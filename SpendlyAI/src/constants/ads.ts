@@ -1,4 +1,7 @@
 import { TestIds } from 'react-native-google-mobile-ads';
+import { logger } from '@/lib/logger';
+
+const log = logger.scope('Ads');
 
 const AD_UNIT_IDS = {
   banner: __DEV__ ? TestIds.BANNER : (process.env.EXPO_PUBLIC_BANNER_AD_UNIT_ID || TestIds.BANNER),
@@ -9,7 +12,6 @@ const AD_UNIT_IDS = {
 
 export function getAdUnitId(type: 'banner' | 'native' | 'rewarded' | 'appOpen'): string {
   const resolvedId = AD_UNIT_IDS[type];
-  console.log(`Resolved ${type} unit ID (${__DEV__ ? 'DEV/Test' : 'PROD'}):`, resolvedId);
+  log.info(`Resolved ${type} unit ID (${__DEV__ ? 'DEV/Test' : 'PROD'}): ${resolvedId}`);
   return resolvedId;
 }
-

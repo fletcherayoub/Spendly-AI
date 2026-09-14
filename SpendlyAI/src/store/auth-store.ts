@@ -6,6 +6,10 @@ import { create } from 'zustand';
 
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
+
+const log = logger.scope('Auth');
+
 
 export type AuthStatus = 'loading' | 'signedIn' | 'signedOut';
 
@@ -96,10 +100,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         if (session?.user) void ensureProfile(session.user);
       })
       .catch((e: unknown) => {
+        log.error('Init failed', e);
         set({ status: 'signedOut', error: e instanceof Error ? e.message : 'Init failed' });
       });
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      log.info(`Auth state changed: ${_event}`);
       set({
         session,
         user: session?.user ?? null,
@@ -158,6 +164,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         throw new Error('No session returned from Google');
       }
     } catch (e: unknown) {
+      log.error('Google sign-in error', e);
       set({ error: e instanceof Error ? e.message : 'Google sign-in failed' });
     } finally {
       set({ actionInFlight: false });
@@ -171,6 +178,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       if (error) throw error;
       queryClient.removeQueries({ queryKey: ['profile'] });
     } catch (e: unknown) {
+      log.error('Sign-out error', e);
       set({ error: e instanceof Error ? e.message : 'Sign-out failed' });
     } finally {
       set({ actionInFlight: false });
@@ -179,3 +187,4 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   clearError: () => set({ error: null }),
 }));
+
