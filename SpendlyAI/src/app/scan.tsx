@@ -18,7 +18,9 @@ import { MaxContentWidth, Spacing, type SpendlyTheme } from '@/constants/theme';
 import { useAddExpense } from '@/hooks/use-expenses';
 import { useSpendlyTheme } from '@/hooks/use-spendly-theme';
 import { CATEGORIES } from '@/lib/categories';
-import { CURRENCIES, formatMoney } from '@/lib/currency';
+import { CURRENCY_CODES, formatMoney } from '@/lib/currency';
+import { CurrencyPicker } from '@/components/currency-picker';
+import { useSettingsStore } from '@/store/settings-store';
 import { logger } from '@/lib/logger';
 import { uploadReceipt } from '@/lib/receipts';
 import { validAmount, validCurrency, validDate } from '@/lib/validation';
@@ -36,7 +38,9 @@ export default function ScanScreen() {
 
   const [perm, requestPerm] = useCameraPermissions();
   const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [modalErr, setModalErr] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
 
   // Review Modal State
@@ -44,16 +48,18 @@ export default function ScanScreen() {
   const [lastBase64, setLastBase64] = useState<string | null>(null);
   const [merchant, setMerchant] = useState('');
   const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('EUR');
+  const defaultCurrency = useSettingsStore((x) => x.defaultCurrency);
+  const [currency, setCurrency] = useState(defaultCurrency);
   const [date, setDate] = useState('');
   const [category, setCategory] = useState<ExpenseCategory>('groceries');
   const [note, setNote] = useState('');
 
   function openReview(result: ScanResult) {
+    setModalErr(null);
     setReviewResult(result);
     setMerchant(result.merchant ?? '');
     setAmount(result.total != null ? String(result.total) : '');
-    setCurrency(result.currency ?? 'EUR');
+    setCurrency((result.currency ?? defaultCurrency).toUpperCase());
     setDate(result.date ?? new Date().toISOString().slice(0, 10));
     setCategory((result.category ?? 'groceries') as ExpenseCategory);
     setNote('');
@@ -108,7 +114,7 @@ export default function ScanScreen() {
       const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         base64: true,
-        quality: 0.8,
+        quality: 0.6,
       });
 
       if (!res.canceled && res.assets?.[0]) {
@@ -122,12 +128,14 @@ export default function ScanScreen() {
   }
 
   async function confirmSave() {
-    if (!user || !amount) return;
+    if (!user || !amount) { setModalErr('Merchant and amount are required.'); return; }
     const amt = validAmount(amount);
-    if (amt == null) { setErr('Enter a valid amount greater than 0.'); return; }
-    if (!validCurrency(currency)) { setErr('Currency must be one of: ' + CURRENCIES.join(', ')); return; }
+    if (amt == null) { setModalErr('Enter a valid amount greater than 0.'); return; }
+    if (!validCurrency(currency)) { setModalErr('Please choose a currency from the list.'); return; }
     const cleanDate = date || new Date().toISOString().slice(0, 10);
-    if (!validDate(cleanDate)) { setErr('Date must be YYYY-MM-DD.'); return; }
+    if (!validDate(cleanDate)) { setModalErr('Date must be YYYY-MM-DD.'); return; }
+    setModalErr(null);
+    setSaving(true);
     try {
       let receiptPath: string | null = null;
       if (lastBase64 && user) {
@@ -149,10 +157,14 @@ export default function ScanScreen() {
       });
 
       setReviewResult(null);
+      setLastBase64(null);
       log.info('Expense saved! Navigating to Expenses screen');
       router.push('/expenses' as never);
     } catch (e) {
       log.error('Failed to save expense', e);
+      setModalErr(e instanceof Error ? e.message : 'Failed to save. Try again.');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -219,7 +231,7 @@ export default function ScanScreen() {
               </View>
 
               <View style={s.fieldGroup}>
-                <Text style={s.label}>Amount ({currency})</Text>
+                <Text style={s.label}>Amount</Text>
                 <TextInput
                   value={amount}
                   onChangeText={setAmount}
@@ -228,6 +240,11 @@ export default function ScanScreen() {
                   placeholder="0.00"
                   placeholderTextColor={t.muted}
                 />
+              </View>
+
+              <View style={s.fieldGroup}>
+                <Text style={s.label}>Currency</Text>
+                <CurrencyPicker value={currency} onChange={setCurrency} />
               </View>
 
               <View style={s.fieldGroup}>
@@ -281,16 +298,18 @@ export default function ScanScreen() {
                 </View>
               )}
 
+              {modalErr ? <Text style={s.err}>{modalErr}</Text> : null}
+              {addExpenseMutation.error ? <Text style={s.err}>{(addExpenseMutation.error as Error).message}</Text> : null}
               <View style={s.modalActions}>
-                <Pressable style={s.cancelBtn} onPress={() => setReviewResult(null)}>
+                <Pressable style={s.cancelBtn} onPress={() => { setReviewResult(null); setModalErr(null); }} disabled={saving}>
                   <Text style={s.cancelBtnText}>Discard</Text>
                 </Pressable>
                 <Pressable
-                  style={s.saveBtn}
+                  style={[s.saveBtn, (saving || addExpenseMutation.isPending) && { opacity: 0.6 }]}
                   onPress={confirmSave}
-                  disabled={addExpenseMutation.isPending}>
+                  disabled={saving || addExpenseMutation.isPending}>
                   <Text style={s.saveBtnText}>
-                    {addExpenseMutation.isPending ? 'Saving…' : 'Confirm & Save'}
+                    {saving || addExpenseMutation.isPending ? 'Saving…' : 'Confirm & Save'}
                   </Text>
                 </Pressable>
               </View>

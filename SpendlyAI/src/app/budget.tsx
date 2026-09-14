@@ -17,14 +17,19 @@ import { useBudgets, useSetBudget } from '@/hooks/use-budgets';
 import { useExpenses } from '@/hooks/use-expenses';
 import { useAddGoal, useGoals, useUpdateGoalAmount } from '@/hooks/use-goals';
 import { CATEGORIES } from '@/lib/categories';
-import { formatMoney } from '@/lib/currency';
+import { convertTo, formatMoney } from '@/lib/currency';
 import { useAuthStore } from '@/store/auth-store';
+import { useSettingsStore } from '@/store/settings-store';
 import type { ExpenseCategory } from '@/types/expense';
 
 export default function BudgetScreen() {
   const t = useSpendlyTheme();
   const styles = createStyles(t);
   const user = useAuthStore((s) => s.user);
+  const defaultCurrency = useSettingsStore((s) => s.defaultCurrency);
+  const money = (n: number, code?: string) => formatMoney(n, code ?? defaultCurrency);
+  const inDef = (amount: number | string, code?: string) =>
+    convertTo(Number(amount), code ?? defaultCurrency, defaultCurrency);
 
   const [activeTab, setActiveTab] = useState<'budgets' | 'goals'>('budgets');
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -52,17 +57,17 @@ export default function BudgetScreen() {
   const [depositGoalId, setDepositGoalId] = useState<string | null>(null);
   const [depositAmount, setDepositAmount] = useState('');
 
-  // Calculate monthly spending per category
+  // Calculate monthly spending per category (converted to default currency)
   const monthExpenses = expenses.filter((e) => e.date.startsWith(currentMonth));
-  const monthTotalSpent = monthExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const monthTotalSpent = monthExpenses.reduce((sum, e) => sum + inDef(e.amount, e.currency), 0);
 
   const categorySpentMap: Record<string, number> = {};
   monthExpenses.forEach((e) => {
-    categorySpentMap[e.category] = (categorySpentMap[e.category] || 0) + Number(e.amount);
+    categorySpentMap[e.category] = (categorySpentMap[e.category] || 0) + inDef(e.amount, e.currency);
   });
 
   const totalBudgetObj = budgets.find((b) => b.category === 'total');
-  const totalLimit = totalBudgetObj ? Number(totalBudgetObj.limit) : 0;
+  const totalLimit = totalBudgetObj ? inDef(totalBudgetObj.limit, totalBudgetObj.currency) : 0;
 
   async function handleSaveBudget() {
     if (!user || !budgetLimitInput) return;
@@ -71,6 +76,7 @@ export default function BudgetScreen() {
       month: currentMonth,
       category: selectedCategory,
       limit: Number(budgetLimitInput),
+      currency: defaultCurrency,
     });
     setShowBudgetModal(false);
     setBudgetLimitInput('');
@@ -82,6 +88,7 @@ export default function BudgetScreen() {
       user_id: user.id,
       title: goalTitle,
       target: Number(goalTarget),
+      currency: defaultCurrency,
       deadline: goalDeadline || null,
     });
     setShowGoalModal(false);
@@ -134,12 +141,12 @@ export default function BudgetScreen() {
                 <View style={styles.summaryRow}>
                   <View>
                     <Text style={styles.summaryLabel}>Total Spent ({currentMonth})</Text>
-                    <Text style={styles.summaryAmount}>{formatMoney(monthTotalSpent)}</Text>
+                    <Text style={styles.summaryAmount}>{money(monthTotalSpent)}</Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.summaryLabel}>Monthly Limit</Text>
+                    <Text style={styles.summaryLabel}>Monthly Limit ({defaultCurrency})</Text>
                     <Text style={styles.summaryLimit}>
-                      {totalLimit > 0 ? formatMoney(totalLimit) : 'No limit'}
+                      {totalLimit > 0 ? money(totalLimit) : 'No limit'}
                     </Text>
                   </View>
                 </View>
@@ -207,7 +214,7 @@ export default function BudgetScreen() {
                       emoji: '📌',
                     };
                     const spent = categorySpentMap[b.category] || 0;
-                    const limit = Number(b.limit);
+                    const limit = inDef(b.limit, b.currency);
                     const pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
                     const isOver = spent > limit;
 
@@ -218,7 +225,7 @@ export default function BudgetScreen() {
                             {catInfo.emoji} {catInfo.label}
                           </Text>
                           <Text style={[styles.catSpent, isOver && { color: t.danger }]}>
-                            {formatMoney(spent)} / {formatMoney(limit)}
+                            {money(spent)} / {money(limit)}
                           </Text>
                         </View>
                         <View style={styles.progressTrack}>
@@ -234,7 +241,7 @@ export default function BudgetScreen() {
                         </View>
                         {isOver && (
                           <Text style={styles.alertText}>
-                            ⚠️ Exceeded budget limit by {formatMoney(spent - limit)}
+                            ⚠️ Exceeded budget limit by {money(spent - limit)}
                           </Text>
                         )}
                       </View>
@@ -277,7 +284,7 @@ export default function BudgetScreen() {
                         <Text style={styles.goalPct}>{pct.toFixed(0)}%</Text>
                       </View>
                       <Text style={styles.goalSub}>
-                        {formatMoney(current, g.currency)} saved of {formatMoney(target, g.currency)}
+                        {money(inDef(g.current, g.currency))} saved of {money(inDef(g.target, g.currency))}
                       </Text>
                       <View style={styles.progressTrack}>
                         <View

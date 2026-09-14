@@ -9,6 +9,8 @@ const settingsMmkv = createMMKV({ id: 'spendly-settings' });
 interface SettingsState {
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
+  defaultCurrency: string;
+  setDefaultCurrency: (code: string) => void;
   policyAcceptedV1: boolean;
   hasOnboarded: boolean;
   acceptPolicy: () => void;
@@ -23,6 +25,8 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       themeMode: 'system',
       setThemeMode: (themeMode) => set({ themeMode }),
+      defaultCurrency: 'MAD',
+      setDefaultCurrency: (defaultCurrency) => set({ defaultCurrency: defaultCurrency.toUpperCase() }),
       policyAcceptedV1: false,
       hasOnboarded: false,
       acceptPolicy: () => set({ policyAcceptedV1: true }),

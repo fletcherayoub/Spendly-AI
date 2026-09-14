@@ -1,4 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -14,6 +15,27 @@ import { useAuthStore } from '@/store/auth-store';
 import { useSettingsStore } from '@/store/settings-store';
 
 SplashScreen.preventAutoHideAsync();
+
+const TAB_ROUTES = new Set(['index', 'expenses', 'scan', 'insights', 'budget', 'more', undefined, null]);
+
+function AuthedNav({ colorScheme }: { colorScheme: 'light' | 'dark' }) {
+  const segments = useSegments();
+  const first = (segments[0] as string | undefined) ?? undefined;
+  // Tab screens render NativeTabs; everything else (add/review/ai/privacy/terms/expense/[id]) renders Stack above.
+  if (TAB_ROUTES.has(first as never)) {
+    return <AppTabs />;
+  }
+  return (
+    <Stack screenOptions={{ headerShown: true }}>
+      <Stack.Screen name="add" options={{ presentation: 'modal', title: 'Add expense' }} />
+      <Stack.Screen name="review" options={{ presentation: 'modal', title: 'Review receipt' }} />
+      <Stack.Screen name="ai" options={{ title: 'Ask AI' }} />
+      <Stack.Screen name="privacy" options={{ title: 'Privacy Policy' }} />
+      <Stack.Screen name="terms" options={{ title: 'Terms' }} />
+      <Stack.Screen name="expense/[id]" options={{ title: 'Expense' }} />
+    </Stack>
+  );
+}
 
 function AuthGate() {
   const colorScheme = useAppColorScheme();
@@ -52,7 +74,7 @@ function AuthGate() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AnimatedSplashOverlay />
-      <AppTabs />
+      <AuthedNav colorScheme={colorScheme} />
     </ThemeProvider>
   );
 }

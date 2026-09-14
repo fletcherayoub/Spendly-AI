@@ -1,14 +1,16 @@
 import { useMemo } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import { BottomTabInset, MaxContentWidth, Spacing, type SpendlyTheme } from '@/constants/theme';
 import { useBudgets } from '@/hooks/use-budgets';
 import { useExpenses } from '@/hooks/use-expenses';
 import { useSpendlyTheme } from '@/hooks/use-spendly-theme';
 import { CATEGORIES } from '@/lib/categories';
-import { formatMoney } from '@/lib/currency';
+import { convertTo, formatMoney } from '@/lib/currency';
 import { useAuthStore } from '@/store/auth-store';
+import { useSettingsStore } from '@/store/settings-store';
 
 export default function InsightsScreen() {
   const t = useSpendlyTheme();
@@ -23,22 +25,28 @@ export default function InsightsScreen() {
 
   const { data: expenses = [], isLoading } = useExpenses(user?.id);
   const { data: budgets = [] } = useBudgets(user?.id, currentMonthStr);
+  const defaultCurrency = useSettingsStore((s) => s.defaultCurrency);
+  const money = (n: number) => formatMoney(n, defaultCurrency);
+
+  // Compute analytics (all totals converted to default currency)
 
   // Compute analytics
   const analytics = useMemo(() => {
+    const inDef = (e: { amount: number | string; currency: string }) =>
+      convertTo(Number(e.amount), e.currency, defaultCurrency);
     const curExpenses = expenses.filter((e) => e.date.startsWith(currentMonthStr));
     const prevExpenses = expenses.filter((e) => e.date.startsWith(prevMonthStr));
 
-    const curTotal = curExpenses.reduce((s, e) => s + Number(e.amount), 0);
-    const prevTotal = prevExpenses.reduce((s, e) => s + Number(e.amount), 0);
+    const curTotal = curExpenses.reduce((s, e) => s + inDef(e), 0);
+    const prevTotal = prevExpenses.reduce((s, e) => s + inDef(e), 0);
 
     const diffPct =
       prevTotal > 0 ? (((curTotal - prevTotal) / prevTotal) * 100).toFixed(1) : null;
 
-    // Category Breakdown
+    // Category Breakdown (converted)
     const catMap: Record<string, number> = {};
     curExpenses.forEach((e) => {
-      catMap[e.category] = (catMap[e.category] || 0) + Number(e.amount);
+      catMap[e.category] = (catMap[e.category] || 0) + inDef(e);
     });
 
     const catList = Object.entries(catMap)
@@ -51,14 +59,14 @@ export default function InsightsScreen() {
 
     const topCategory = catList[0] ?? null;
 
-    // Recurring / Subscription detection
+    // Recurring / Subscription detection (converted totals)
     const merchantCounts: Record<string, { count: number; total: number }> = {};
     expenses.forEach((e) => {
       if (!e.merchant) return;
       const m = e.merchant.trim().toLowerCase();
       if (!merchantCounts[m]) merchantCounts[m] = { count: 0, total: 0 };
       merchantCounts[m].count += 1;
-      merchantCounts[m].total += Number(e.amount);
+      merchantCounts[m].total += inDef(e);
     });
 
     const recurring = Object.entries(merchantCounts)
@@ -86,7 +94,7 @@ export default function InsightsScreen() {
       score,
       totalLimit,
     };
-  }, [expenses, currentMonthStr, prevMonthStr, budgets]);
+  }, [expenses, currentMonthStr, prevMonthStr, budgets, defaultCurrency]);
 
   if (isLoading) {
     return (
@@ -103,6 +111,9 @@ export default function InsightsScreen() {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.title}>AI Insights & Analytics</Text>
+          <Pressable style={styles.askBtn} onPress={() => router.push('/ai' as never)}>
+            <Text style={styles.askBtnT}>🧠 Ask AI about my spending</Text>
+          </Pressable>
 
           {/* AI Health Score Card */}
           <View style={styles.scoreCard}>
@@ -132,11 +143,11 @@ export default function InsightsScreen() {
             <View style={styles.momRow}>
               <View>
                 <Text style={styles.momLabel}>This Month ({currentMonthStr})</Text>
-                <Text style={styles.momVal}>{formatMoney(analytics.curTotal)}</Text>
+                <Text style={styles.momVal}>{money(analytics.curTotal)}</Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={styles.momLabel}>Last Month ({prevMonthStr})</Text>
-                <Text style={styles.momVal}>{formatMoney(analytics.prevTotal)}</Text>
+                <Text style={styles.momVal}>{money(analytics.prevTotal)}</Text>
               </View>
             </View>
 
@@ -171,7 +182,7 @@ export default function InsightsScreen() {
                         {catInfo.emoji} {catInfo.label}
                       </Text>
                       <Text style={styles.catAmt}>
-                        {formatMoney(item.amount)} ({item.pct.toFixed(0)}%)
+                        {money(item.amount)} ({item.pct.toFixed(0)}%)
                       </Text>
                     </View>
                     <View style={styles.barTrack}>
@@ -194,7 +205,7 @@ export default function InsightsScreen() {
                 <View key={r.merchant} style={styles.recurringRow}>
                   <Text style={styles.recName}>{r.merchant.toUpperCase()}</Text>
                   <Text style={styles.recMeta}>
-                    {r.count} charges · {formatMoney(r.total)} total
+                    {r.count} charges · {money(r.total)} total
                   </Text>
                 </View>
               ))}
@@ -207,7 +218,7 @@ export default function InsightsScreen() {
             {analytics.topCategory ? (
               <Text style={styles.tipText}>
                 Your highest spending category this month is{' '}
-                <Text style={{ fontWeight: '800' }}>{analytics.topCategory.category.toUpperCase()}</Text> ({formatMoney(analytics.topCategory.amount)}).
+                <Text style={{ fontWeight: '800' }}>{analytics.topCategory.category.toUpperCase()}</Text> ({money(analytics.topCategory.amount)}).
                 Setting a category limit in the Budget tab can help you save up to 15% next month!
               </Text>
             ) : (
@@ -245,6 +256,13 @@ const createStyles = (t: SpendlyTheme) =>
       fontSize: 26,
       fontWeight: '800',
     },
+    askBtn: {
+      backgroundColor: t.primary,
+      borderRadius: 14,
+      paddingVertical: 13,
+      alignItems: 'center',
+    },
+    askBtnT: { color: '#fff', fontWeight: '800', fontSize: 15 },
     scoreCard: {
       backgroundColor: t.primary,
       borderRadius: 20,

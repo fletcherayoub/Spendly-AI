@@ -3,9 +3,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MaxContentWidth, Spacing, type SpendlyTheme } from '@/constants/theme';
 import { AppearanceSelector } from '@/components/appearance-selector';
+import { CurrencyPicker } from '@/components/currency-picker';
 import { useSpendlyTheme } from '@/hooks/use-spendly-theme';
 import { useProfile } from '@/hooks/UserHooks/use-profile';
 import { useAuthStore } from '@/store/auth-store';
+import { useSettingsStore } from '@/store/settings-store';
 
 export default function MoreScreen() {
   const t = useSpendlyTheme();
@@ -14,6 +16,8 @@ export default function MoreScreen() {
   const signOut = useAuthStore((s) => s.signOut);
   const actionInFlight = useAuthStore((s) => s.actionInFlight);
   const { data: profile } = useProfile(user?.id);
+  const defaultCurrency = useSettingsStore((s) => s.defaultCurrency);
+  const setDefaultCurrency = useSettingsStore((s) => s.setDefaultCurrency);
 
   return (
     <View style={styles.root}>
@@ -25,6 +29,12 @@ export default function MoreScreen() {
         </View>
 
         <AppearanceSelector />
+
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>Default currency (new expenses + home total)</Text>
+          <CurrencyPicker value={defaultCurrency} onChange={setDefaultCurrency} />
+          <Text style={styles.cardHint}>Totals convert automatically using reference rates.</Text>
+        </View>
 
         <Pressable
           style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
@@ -76,6 +86,8 @@ const createStyles = (t: SpendlyTheme) =>
       color: t.muted,
       fontSize: 14,
     },
+    cardLabel: { color: t.ink, fontSize: 14, fontWeight: '700' },
+    cardHint: { color: t.muted, fontSize: 12 },
     signOut: {
       borderWidth: 1,
       borderColor: t.dangerBorder,
